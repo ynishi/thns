@@ -42,11 +42,23 @@ op s p x y = P.printf "(%s %s %s)" (p x) s (p y)
 
 binOp s p x = P.printf "(%s)" $ L.intercalate (" " ++ s ++ " ") . map p $ x
 
-inOp t x = P.printf "(%s in (\n%s\n))" t x
+inOp t x = P.printf "(%s in (\n %s\n))" t x
 
 eqOp t x = P.printf "(%s = %s)" t x
 
-quote = P.printf "'%s'" . map repl
+quote = P.printf "'%s'" . trim . concatMap repl
 
-repl '\'' = '\''
-repl c    = c
+trim :: String -> String
+trim = trimR . trimL
+
+trimR :: String -> String
+trimR = reverse . trimL . reverse
+
+trimL :: String -> String
+trimL []       = []
+trimL ('"':xs) = xs
+trimL xs       = xs
+
+repl :: Char -> String
+repl '\'' = "\\'"
+repl c    = [c]
