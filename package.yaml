@@ -24,6 +24,7 @@ dependencies:
 - containers < 1
 - split < 1
 - text >= 1.2 && < 2
+- parsec
 
 library:
   source-dirs: src
