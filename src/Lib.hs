@@ -17,7 +17,7 @@ import qualified Data.List.Split               as LS
 import qualified Data.Set                      as S
 import qualified Text.Printf                   as P
 
-import           Text.ParserCombinators.Parsec hiding (spaces)
+import           Text.ParserCombinators.Parsec
 
 type Tag = String
 
@@ -43,55 +43,67 @@ run p input =
     Left err -> putStr "parse error at" >> print err
     Right x  -> putStrLn $ pp x
 
-spaces :: Parser ()
-spaces = skipMany1 space
+skipSpaces1 :: Parser ()
+skipSpaces1 = skipMany1 space
 
 skipSpaces :: Parser ()
 skipSpaces = skipMany space
 
-parseSkipSpace :: Parser String
-parseSkipSpace = skipSpaces >> return ""
+symbol :: Parser Char
+symbol = oneOf "!@#$%^&{}|;:\"',.<>/?~`"
+
+escSymbol :: Parser Char
+escSymbol = do
+  char '\\'
+  b <- oneOf "[]"
+  return b
 
 parseTag :: Parser String
 parseTag = do
   char '\''
-  tag <- many alphaNum
+  tag <- many1 alphaNum
   return tag
 
 parseVal :: Parser String
-parseVal = many alphaNum
+parseVal = many1 (alphaNum <|> symbol <|> escSymbol)
 
 parseV :: Parser (Cond String)
 parseV = do
   tag <- parseTag
-  parseSkipSpace
+  skipSpaces1
   v <- parseVal
   return . V tag $ v
 
 parseG :: Parser (Cond String)
 parseG = do
   tag <- parseTag
-  parseSkipSpace
+  skipSpaces
   char '['
-  vs <- sepBy parseVal spaces
+  skipSpaces
+  vs <- sepEndBy1 parseVal spaces
   char ']'
   return . G tag $ vs
 
-parseOr :: Parser (Cond String)
-parseOr = do
-  string "#or"
+parseWord :: String -> Parser String
+parseWord key = do
+  char '#'
+  string key >>= return
+
+parseTwo ::
+     String
+  -> (Cond String -> Cond String -> Cond String)
+  -> Parser (Cond String)
+parseTwo key op = do
+  parseWord key
   fst <- parseExpr
-  parseSkipSpace
   snd <- parseExpr
-  return . Or fst $ snd
+  return . op fst $ snd
+
+parseOr :: Parser (Cond String)
+parseOr = parseTwo "or" Or
 
 parseAnd :: Parser (Cond String)
-parseAnd = do
-  string "#and"
-  fst <- parseExpr
-  parseSkipSpace
-  snd <- parseExpr
-  return . And fst $ snd
+parseAnd = parseTwo "and" And
 
 parseNot :: Parser (Cond String)
 parseNot = do
@@ -108,9 +120,9 @@ parseSep = do
 
 parseExpr :: Parser (Cond String)
 parseExpr =
-  parseSkipSpace >>
+  skipSpaces1 >>
   (try parseSep <|> try parseNot <|> try parseOr <|> try parseAnd <|> try parseG <|>
-   parseV)
+   try parseV)
 
 ppE :: Either a (Cond String) -> String
 ppE (Right c) = pp c
