@@ -53,16 +53,10 @@ symbol :: Parser Char
 symbol = oneOf "!@#$%^&{}|;:\"',.<>/?~`"
 
 escSymbol :: Parser Char
-escSymbol = do
-  char '\\'
-  b <- oneOf "[]"
-  return b
+escSymbol = char '\\' >> oneOf "[]"
 
 parseTag :: Parser String
-parseTag = do
-  char '\''
-  tag <- many1 alphaNum
-  return tag
+parseTag = char '\'' >> many1 alphaNum
 
 parseVal :: Parser String
 parseVal = many1 (alphaNum <|> symbol <|> escSymbol)
@@ -77,17 +71,13 @@ parseV = do
 parseG :: Parser (Cond String)
 parseG = do
   tag <- parseTag
-  skipSpaces
-  char '['
-  skipSpaces
+  skipSpaces >> char '[' >> skipSpaces
   vs <- sepEndBy1 parseVal spaces
   char ']'
   return . G tag $ vs
 
 parseWord :: String -> Parser String
-parseWord key = do
-  char '#'
-  string key >>= return
+parseWord x = char '#' >> string x
 
 parseTwo ::
      String
@@ -106,21 +96,18 @@ parseAnd :: Parser (Cond String)
 parseAnd = parseTwo "and" And
 
 parseNot :: Parser (Cond String)
-parseNot = do
-  string "#not"
-  x <- parseExpr
-  return $ Not x
+parseNot = Not <$> (parseWord "not" >> parseExpr)
 
 parseSep :: Parser (Cond String)
 parseSep = do
   char '('
   x <- parseExpr
-  char ')'
+  skipSpaces >> char ')'
   return x
 
 parseExpr :: Parser (Cond String)
 parseExpr =
-  skipSpaces1 >>
+  skipSpaces >>
   (try parseSep <|> try parseNot <|> try parseOr <|> try parseAnd <|> try parseG <|>
    try parseV)
 
