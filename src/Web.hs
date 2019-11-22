@@ -15,13 +15,11 @@ module Web
 import           Control.Concurrent.STM
 import           Control.Monad.IO.Class
 import           Data.Aeson
-import           Data.IntMap              (IntMap)
-import qualified Data.IntMap              as IntMap
+import           Data.IntMap            (IntMap)
+import qualified Data.IntMap            as IntMap
 import           GHC.Generics
 import           Lib
 import           Servant
-
-import qualified Network.Wai.Handler.Warp as Warp
 
 type CRUD
    = "conv" :> "all" :> Get '[ JSON] [Conv] :<|> "conv" :> ReqBody '[ JSON] Conv :> Post '[ JSON] Conv :<|> "conv" :> Capture "id" Int :> ReqBody '[ JSON] Conv :> Put '[ JSON] () :<|> "conv" :> Capture "id" Int :> Delete '[ JSON] ()
@@ -36,9 +34,6 @@ data Conv = Conv
   , valid  :: Bool
   , err    :: String
   } deriving (Generic, FromJSON, ToJSON)
-
-convList :: [Conv]
-convList = [Conv 1 "'a b" "(a = 'b')" True ""]
 
 type API = CRUD
 
@@ -67,5 +62,3 @@ server db = getConvAll :<|> postConv :<|> putConvId :<|> deleteConvId
     deleteConvId cid =
       liftIO . atomically . modifyTVar db $ \(maxId, m) ->
         (maxId, IntMap.delete cid m)
---instance Arbitrary Conv where
---    arbitrary = Conv <$> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary <*> arbitrary
