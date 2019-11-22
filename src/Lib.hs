@@ -1,6 +1,7 @@
 module Lib
   ( Cond(..)
   , run
+  , runE
   , pp
   , ppE
   , parseV
@@ -42,6 +43,16 @@ run p input =
   case parse p "" input of
     Left err -> putStr "parse error at" >> print err
     Right x  -> putStrLn $ pp x
+
+runE ::
+     (P.PrintfArg a, Show a)
+  => Parser (Cond a)
+  -> String
+  -> Either String String
+runE p input =
+  case parse p "" input of
+    Left err -> Left $ "parse error at" ++ show err
+    Right x  -> Right $ pp x
 
 skipSpaces1 :: Parser ()
 skipSpaces1 = skipMany1 space

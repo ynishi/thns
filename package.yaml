@@ -25,6 +25,12 @@ dependencies:
 - split < 1
 - text >= 1.2 && < 2
 - parsec
+- servant-server
+- servant-mock
+- warp
+- aeson
+- QuickCheck
+- stm
 
 library:
   source-dirs: src
