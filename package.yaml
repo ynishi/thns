@@ -27,7 +27,11 @@ dependencies:
 - parsec
 - servant-server
 - servant-mock
+- servant-js
+- servant-options
 - warp
+- wai-cors
+- http-types
 - aeson
 - QuickCheck
 - stm
@@ -45,6 +49,24 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - thns
+  thns-cli:
+    main:                Main.hs
+    source-dirs:         cli
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - thns
+  thns-axios:
+    main:                Main.hs
+    source-dirs:         thns-axios
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - thns
 
 tests:
   thns-test:

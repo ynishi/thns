@@ -35,13 +35,13 @@ data Conv = Conv
   , err    :: String
   } deriving (Generic, FromJSON, ToJSON)
 
-type API = CRUD
+type API = "static" :> Raw :<|> CRUD
 
 api :: Proxy API
 api = Proxy
 
 server :: TVar (Int, IntMap Conv) -> Server API
-server db = getConvAll :<|> postConv :<|> putConvId :<|> deleteConvId
+server db = serveDirectoryFileServer "thns-server/static" :<|> getConvAll :<|> postConv :<|> putConvId :<|> deleteConvId
   where
     getConvAll = liftIO $ IntMap.elems . snd <$> readTVarIO db
     postConv conv =
