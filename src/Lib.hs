@@ -61,13 +61,16 @@ skipSpaces :: Parser ()
 skipSpaces = skipMany space
 
 symbol :: Parser Char
-symbol = oneOf "!@#$%^&{}|;:\"',.<>/?~`"
+symbol = oneOf "#!@$%^&{}|;:\"',.<>/?~`-_+="
+
+underscore :: Parser Char
+underscore = char '_'
 
 escSymbol :: Parser Char
-escSymbol = char '\\' >> oneOf "[]"
+escSymbol = char '\\' >> oneOf "[]()"
 
 parseTag :: Parser String
-parseTag = char '\'' >> many1 alphaNum
+parseTag = char '\'' >> many1 (alphaNum <|> underscore)
 
 parseVal :: Parser String
 parseVal = many1 (alphaNum <|> symbol <|> escSymbol)
